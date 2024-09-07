@@ -1,5 +1,5 @@
-// const EXCEL_FILE_URL = 'https://veerendrav.github.io/cccp_library/library_books.xlsx'; // Update with your actual URL
-const EXCEL_FILE_URL = './library_books.xlsx'
+const EXCEL_FILE_URL = 'https://veerendrav.github.io/cccp_library/library_books.xlsx'; // Update with your actual URL
+// const EXCEL_FILE_URL = './library_books.xlsx'
 // Fetch the Excel file periodically
 function fetchExcelFile() {
     fetch(EXCEL_FILE_URL)
@@ -23,17 +23,32 @@ function displayBooks(data) {
     availableBooksTable.innerHTML = '';
     borrowedBooksTable.innerHTML = '';
 
+    // Function to format the Excel date to DD/MM/YYYY format
+    function formatDate(excelDate) {
+        if (!excelDate) return 'N/A';  // If no date is provided, return 'N/A'
+
+        // Excel dates are serialized as the number of days since 1st Jan 1900
+        const date = new Date(Math.round((excelDate - 25569) * 86400 * 1000));
+
+        // Extract day, month, and year
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');  // Months are 0-based
+        const year = date.getUTCFullYear();
+
+        return `${month}/${day}/${year}`;
+    }
+
     data.forEach(book => {
         const { Title, Author, Category, Borrower, BorrowedDate, ReturnDate } = book;
 
         if (Borrower) {
-            // Book is borrowed
+            // Book is borrowed, format BorrowedDate and ReturnDate
             const borrowedRow = `
                 <tr>
                     <td>${Title}</td>
                     <td>${Borrower}</td>
-                    <td>${BorrowedDate || 'N/A'}</td>
-                    <td>${ReturnDate || 'N/A'}</td>
+                    <td>${formatDate(BorrowedDate)}</td>
+                    <td>${formatDate(ReturnDate)}</td>
                 </tr>
             `;
             borrowedBooksTable.insertAdjacentHTML('beforeend', borrowedRow);
@@ -50,6 +65,7 @@ function displayBooks(data) {
         }
     });
 }
+
 
 // Fetch and display the Excel file when the page loads
 fetchExcelFile();
